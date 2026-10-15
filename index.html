@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#18233F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Oído de intervalos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Music&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #E9EEF5; --surface: #FFFFFF; --ink: #18233F; --muted: #5A6683; --line: #C9D2E1;
+  --accent: #A8711A; --accent-ink: #FFFFFF; --ok: #1F7A4D; --bad: #B3362E;
+  --ok-soft: #DCF1E5; --bad-soft: #F7E0DE;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10172A; --surface: #1A2340; --ink: #E6EBF5; --muted: #9AA6C2; --line: #33406A;
+    --accent: #E3B04B; --accent-ink: #1A1405; --ok: #4CC38A; --bad: #F07167;
+    --ok-soft: #173A2C; --bad-soft: #43221F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10172A; --surface: #1A2340; --ink: #E6EBF5; --muted: #9AA6C2; --line: #33406A;
+  --accent: #E3B04B; --accent-ink: #1A1405; --ok: #4CC38A; --bad: #F07167;
+  --ok-soft: #173A2C; --bad-soft: #43221F;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px; line-height: 1.45; -webkit-tap-highlight-color: transparent;
+}
+main { max-width: 520px; margin: 0 auto; padding: 18px 18px 110px; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.streak { color: var(--muted); font-size: 0.95rem; white-space: nowrap; }
+.streak strong { color: var(--ink); font-size: 1.15rem; }
+
+.staff-wrap { background: var(--surface); border-radius: 22px; padding: 6px 6px 4px; border: 1px solid var(--line); }
+.staff-wrap svg { display: block; width: 100%; height: auto; color: var(--ink); }
+.staff-caption { text-align: center; min-height: 1.6em; color: var(--muted); font-size: 0.98rem; padding-bottom: 8px; }
+.note-in { animation: drop .35s ease-out both; }
+@keyframes drop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+.play-row { display: flex; gap: 10px; margin: 16px 0 12px; }
+.play-main {
+  flex: 1; border: none; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+  font-weight: 800; font-size: 1.15rem; padding: 16px 20px; min-height: 58px;
+}
+.play-main:active { transform: scale(0.98); }
+.play-again { border: 2px solid var(--line); background: transparent; border-radius: 999px; padding: 0 18px; min-height: 58px; font-weight: 600; }
+.play-again:disabled { opacity: 0.45; }
+
+.feedback { min-height: 3.2em; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; font-size: 1rem; }
+.feedback.ok { background: var(--ok-soft); color: var(--ok); }
+.feedback.idle { color: var(--muted); padding-left: 2px; }
+
+[hidden] { display: none !important; }
+.mode-switch { margin-bottom: 12px; }
+.route-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
+.route-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.route-head strong { font-size: 1.1rem; }
+.route-new { color: var(--accent); font-weight: 600; font-size: 0.95rem; }
+.route-notes { color: var(--muted); margin: 2px 0 10px; }
+.route-progress { color: var(--muted); font-size: 0.92rem; margin: 0 0 10px; }
+.route-controls { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
+.route-scores { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.score-pill {
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 4px 8px 6px;
+  min-width: 64px; font-size: 0.88rem; font-weight: 600; transition: border-color .2s, color .2s;
+}
+.score-pill .pts { color: var(--muted); font-weight: 400; font-size: 0.8rem; }
+.score-pill .mini { height: 4px; background: var(--line); border-radius: 99px; margin-top: 4px; overflow: hidden; }
+.score-pill .mini div { height: 100%; background: var(--accent); transition: width .3s; }
+.score-pill.done { border-color: var(--ok); color: var(--ok); }
+.score-pill.done .mini div { background: var(--ok); }
+.score-pill.dropped { border-color: var(--bad); color: var(--bad); }
+.score-pill.dropped .mini div { background: var(--bad); }
+.chip:disabled { opacity: 0.4; cursor: default; }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.answers.three { grid-template-columns: repeat(3, 1fr); }
+.answer {
+  border: 2px solid var(--line); background: var(--surface); border-radius: 16px;
+  padding: 12px 14px; text-align: left; min-height: 66px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.answers.three .answer { text-align: center; align-items: center; padding: 10px 6px; }
+.answer .code { font-weight: 800; font-size: 1.35rem; line-height: 1.1; }
+.answer .name { color: var(--muted); font-size: 0.9rem; }
+.answer:disabled { opacity: 0.45; cursor: default; }
+.answer.is-right { border-color: var(--ok); background: var(--ok-soft); opacity: 1; }
+.answer.is-wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); opacity: 1; }
+.answer.is-wrong .name { color: var(--bad); }
+.answers:not(.three) .answer:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+details.settings { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 12px; }
+details.settings summary { font-weight: 600; cursor: pointer; padding: 6px 0; }
+.setting-group { margin: 12px 0 4px; }
+.setting-group p { margin: 0 0 8px; color: var(--muted); font-size: 0.95rem; }
+.segmented { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 2px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 8px 14px; font-size: 0.95rem; font-weight: 600; min-height: 42px;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.small { padding: 6px 10px; font-size: 0.85rem; min-height: 36px; }
+.toggle-line { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.98rem; }
+.toggle-line input { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; }
+
+.learn-list { list-style: none; margin: 0; padding: 0; }
+.learn-list li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.learn-list h3 { margin: 0; font-size: 1.2rem; }
+.learn-list h3 span { color: var(--muted); font-weight: 400; font-size: 0.95rem; }
+.learn-list .refs { color: var(--muted); font-size: 0.95rem; margin: 6px 0 10px; }
+.intro { color: var(--muted); margin: 0 0 6px; }
+
+h2.group { font-size: 1.15rem; margin: 24px 0 2px; }
+.bar-row { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.bar-head { display: flex; justify-content: space-between; gap: 8px; font-size: 0.98rem; }
+.bar-head .pct { font-weight: 800; }
+.bar-head .count { color: var(--muted); }
+.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.bar > div { height: 100%; background: var(--accent); border-radius: 999px; }
+.totals { display: flex; gap: 24px; margin: 4px 0 4px; }
+.totals div { font-size: 0.92rem; color: var(--muted); }
+.totals strong { display: block; font-size: 1.6rem; color: var(--ink); line-height: 1.1; }
+.reset { margin-top: 22px; border: 2px solid var(--bad); color: var(--bad); background: transparent; border-radius: 999px; padding: 10px 18px; font-weight: 600; }
+.tip { color: var(--muted); font-size: 0.9rem; margin-top: 18px; }
+
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface);
+  border-top: 1px solid var(--line); display: flex; justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5;
+}
+nav.tabs .inner { display: flex; width: 100%; max-width: 520px; }
+nav.tabs button {
+  flex: 1; border: none; background: none; padding: 12px 2px 14px; font-weight: 600;
+  color: var(--muted); font-size: 0.95rem; border-top: 3px solid transparent;
+}
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-top-color: var(--accent); }
+section[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .note-in { animation: none; }
+  .play-main:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1 id="screenTitle">Intervalos</h1>
+    <div class="streak">Racha <strong id="streak">0</strong></div>
+  </header>
+
+  <!-- INTERVALOS -->
+  <section id="panel-intervals" role="tabpanel" aria-labelledby="tab-intervals">
+    <div class="staff-wrap">
+      <svg id="intervalStaff" viewBox="0 0 320 170" role="img" aria-label="Pentagrama"></svg>
+      <div class="staff-caption" id="intervalCaption">Toca Empezar y escucha dos notas</div>
+    </div>
+    <div class="play-row">
+      <button class="play-main" id="intervalMain">Empezar</button>
+      <button class="play-again" id="intervalReplay" disabled>Repetir</button>
+    </div>
+    <div class="feedback idle" id="intervalFeedback" aria-live="polite">¿Qué intervalo escuchaste?</div>
+    <div class="answers" id="intervalAnswers"></div>
+
+    <details class="settings">
+      <summary>Ajustes de intervalos</summary>
+      <div class="setting-group">
+        <p>Cómo suenan las notas (activa una o varias)</p>
+        <div class="segmented" id="directionChips"></div>
+      </div>
+      <div class="setting-group">
+        <p>Intervalos incluidos (mínimo dos)</p>
+        <div class="segmented" id="intervalChips"></div>
+        <div class="segmented" style="margin-top:8px">
+          <button class="chip small" id="pickBasic">Solo m3, M3, P4, P5 y P8</button>
+          <button class="chip small" id="pickAllIntervals">Todos</button>
+        </div>
+      </div>
+      <label class="toggle-line">
+        <input type="checkbox" class="autoNextBox">
+        Pasar sola a la siguiente cuando acierto
+      </label>
+    </details>
+  </section>
+
+  <!-- NOTAS -->
+  <section id="panel-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
+    <div class="segmented mode-switch" id="noteModeChips"></div>
+    <div class="route-card" id="routeCard">
+      <div class="route-head"><strong id="routeStep"></strong><span class="route-new" id="routeNew"></span></div>
+      <div class="route-notes" id="routeNotes"></div>
+      <div class="route-progress" id="routeProgress"></div>
+      <div class="route-scores" id="routeScores"></div>
+      <div class="bar"><div id="routeBar"></div></div>
+    </div>
+    <div class="staff-wrap">
+      <svg id="noteStaff" viewBox="0 0 320 170" role="img" aria-label="Pentagrama"></svg>
+      <div class="staff-caption" id="noteCaption">Toca Empezar y escucha una nota</div>
+    </div>
+    <div class="play-row">
+      <button class="play-main" id="noteMain">Empezar</button>
+      <button class="play-again" id="noteReplay" disabled>Repetir</button>
+    </div>
+    <div class="feedback idle" id="noteFeedback" aria-live="polite">¿Qué nota es?</div>
+    <div class="answers three" id="noteAnswers"></div>
+
+    <div class="route-controls" id="routeControls">
+      <div class="segmented">
+        <button class="chip small" id="routeBack">Paso anterior</button>
+        <button class="chip small" id="routeForward">Paso siguiente</button>
+        <button class="chip small" id="routeChords">Escuchar acordes de Do</button>
+      </div>
+      <label class="toggle-line">
+        <input type="checkbox" id="resolveBox">
+        Al acertar, llevar la nota hasta Do
+      </label>
+    </div>
+
+    <details class="settings" id="freeSettings" open>
+      <summary>Ajustes de notas</summary>
+      <div class="setting-group">
+        <p>Cuántas octavas puede variar la nota</p>
+        <div class="segmented" id="octaveChips"></div>
+      </div>
+      <div class="setting-group">
+        <p>Notas incluidas (mínimo dos)</p>
+        <div class="segmented" id="noteChips"></div>
+        <div class="segmented" style="margin-top:8px">
+          <button class="chip small" id="pickNaturals">Solo naturales</button>
+          <button class="chip small" id="pickAll">Las doce</button>
+        </div>
+      </div>
+      <label class="toggle-line">
+        <input type="checkbox" id="showFirstBox">
+        Mostrar la nota en el pentagrama antes de responder (práctica de lectura)
+      </label>
+      <label class="toggle-line">
+        <input type="checkbox" class="autoNextBox">
+        Pasar sola a la siguiente cuando acierto
+      </label>
+    </details>
+  </section>
+
+  <!-- APRENDER -->
+  <section id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" hidden>
+    <p class="intro">Escucha cada intervalo y asócialo con el inicio de una canción conocida.</p>
+    <ul class="learn-list" id="learnList"></ul>
+  </section>
+
+  <!-- PROGRESO -->
+  <section id="panel-progress" role="tabpanel" aria-labelledby="tab-progress" hidden>
+    <p class="intro">Cuenta como acierto solo cuando lo tienes bien al primer intento.</p>
+    <h2 class="group">Intervalos</h2>
+    <div class="totals">
+      <div><strong id="intervalTotal">0</strong>preguntas</div>
+      <div><strong id="intervalPct">–</strong>al primer intento</div>
+    </div>
+    <div id="intervalBars"></div>
+    <h2 class="group">Notas</h2>
+    <div class="totals">
+      <div><strong id="noteTotal">0</strong>preguntas</div>
+      <div><strong id="notePct">–</strong>al primer intento</div>
+    </div>
+    <div id="noteBars"></div>
+    <h2 class="group">Mejor racha: <span id="bestStreak">0</span></h2>
+    <button class="reset" id="resetButton">Borrar mi progreso</button>
+    <p class="tip">Si no oyes nada en iPhone, quita el modo silencio. Para abrirla como app, usa “Agregar a pantalla de inicio” en el menú de compartir del navegador.</p>
+  </section>
+</main>
+
+<nav class="tabs">
+  <div class="inner" role="tablist">
+    <button role="tab" id="tab-intervals" aria-selected="true" aria-controls="panel-intervals">Intervalos</button>
+    <button role="tab" id="tab-notes" aria-selected="false" aria-controls="panel-notes">Notas</button>
+    <button role="tab" id="tab-learn" aria-selected="false" aria-controls="panel-learn">Aprender</button>
+    <button role="tab" id="tab-progress" aria-selected="false" aria-controls="panel-progress">Progreso</button>
+  </div>
+</nav>
+
+<script>
+"use strict";
+
+const INTERVALS = [
+  { code: "m2", name: "Segunda menor", semitones: 1, number: 2, up: "Tiburón (tema)", down: "Para Elisa (Beethoven)" },
+  { code: "M2", name: "Segunda mayor", semitones: 2, number: 2, up: "Cumpleaños feliz", down: "Yesterday (Beatles)" },
+  { code: "m3", name: "Tercera menor", semitones: 3, number: 3, up: "Greensleeves", down: "Hey Jude (Beatles)" },
+  { code: "M3", name: "Tercera mayor", semitones: 4, number: 3, up: "When the Saints Go Marching In", down: "Quinta sinfonía de Beethoven" },
+  { code: "P4", name: "Cuarta justa", semitones: 5, number: 4, up: "Marcha nupcial de Wagner", down: "Pequeña serenata nocturna (Mozart)" },
+  { code: "TT", name: "Tritono", semitones: 6, number: 4, up: "Los Simpson (tema)", down: "" },
+  { code: "P5", name: "Quinta justa", semitones: 7, number: 5, up: "Star Wars (tema principal)", down: "Los Picapiedra" },
+  { code: "m6", name: "Sexta menor", semitones: 8, number: 6, up: "The Entertainer (Scott Joplin)", down: "" },
+  { code: "M6", name: "Sexta mayor", semitones: 9, number: 6, up: "My Bonnie Lies Over the Ocean", down: "Nobody Knows the Trouble I've Seen" },
+  { code: "m7", name: "Séptima menor", semitones: 10, number: 7, up: "Star Trek (serie original)", down: "Un americano en París (Gershwin)" },
+  { code: "M7", name: "Séptima mayor", semitones: 11, number: 7, up: "Take On Me (a-ha, coro)", down: "" },
+  { code: "P8", name: "Octava justa", semitones: 12, number: 8, up: "Over the Rainbow (El mago de Oz)", down: "Dos notas iguales, una aguda y una grave" }
+];
+const BASIC_CODES = ["m3", "M3", "P4", "P5", "P8"];
+
+const DIRECTIONS = [
+  { key: "up", label: "Subiendo" },
+  { key: "down", label: "Bajando" },
+  { key: "together", label: "Juntas" }
+];
+
+const LETTER_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
+const SOLFEGE = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+
+// The twelve pitch classes, spelled with sharps
+const PITCH_CLASSES = [
+  { pc: 0, letter: 0, accidental: 0 }, { pc: 1, letter: 0, accidental: 1 },
+  { pc: 2, letter: 1, accidental: 0 }, { pc: 3, letter: 1, accidental: 1 },
+  { pc: 4, letter: 2, accidental: 0 }, { pc: 5, letter: 3, accidental: 0 },
+  { pc: 6, letter: 3, accidental: 1 }, { pc: 7, letter: 4, accidental: 0 },
+  { pc: 8, letter: 4, accidental: 1 }, { pc: 9, letter: 5, accidental: 0 },
+  { pc: 10, letter: 5, accidental: 1 }, { pc: 11, letter: 6, accidental: 0 }
+];
+const NATURAL_PCS = [0, 2, 4, 5, 7, 9, 11];
+const OCTAVE_RANGES = { 1: [4], 2: [4, 5], 3: [3, 4, 5] };
+
+// Interval roots chosen so every spelling needs at most one accidental
+const ROOTS = [
+  { letter: 0, accidental: 0 }, { letter: 1, accidental: 0 }, { letter: 2, accidental: 0 },
+  { letter: 3, accidental: 0 }, { letter: 4, accidental: 0 }, { letter: 5, accidental: 0 },
+  { letter: 2, accidental: -1 }, { letter: 3, accidental: 1 }
+];
+
+/*
+ * Guided route: start with Do and Sol, add one note per step,
+ * then widen to 2 octaves, add the sharps, and finish with 3 octaves.
+ */
+const ROUTE_NATURAL_ORDER = [0, 7, 4, 5, 2, 9, 11];
+const ROUTE_SHARP_ORDER = [6, 10, 1, 3, 8];
+const NOTE_GOAL = 5;
+const MISTAKE_PENALTY = 2;
+const ROUTE_STAGES = (() => {
+  const stages = [];
+  const pcs = [0, 7];
+  stages.push({ pcs: pcs.slice(), octaves: 1, added: null });
+  ROUTE_NATURAL_ORDER.slice(2).forEach(pc => {
+    pcs.push(pc);
+    stages.push({ pcs: pcs.slice(), octaves: 1, added: pc });
+  });
+  stages.push({ pcs: pcs.slice(), octaves: 2, added: null });
+  ROUTE_SHARP_ORDER.forEach(pc => {
+    pcs.push(pc);
+    stages.push({ pcs: pcs.slice(), octaves: 2, added: pc });
+  });
+  stages.push({ pcs: pcs.slice(), octaves: 3, added: null });
+  return stages;
+})();
+const LAST_STAGE = ROUTE_STAGES.length - 1;
+
+const STORAGE_KEY = "oido-intervalos-v2";
+
+const state = {
+  directions: ["up", "down", "together"],
+  enabledCodes: INTERVALS.map(interval => interval.code),
+  autoNext: true,
+  octaves: 1,
+  enabledPcs: NATURAL_PCS.slice(),
+  showFirst: false,
+  noteMode: "route",
+  routeStage: 0,
+  routeMaxStage: 0,
+  routeScores: {},
+  resolveToDo: true,
+  intervalStats: {},
+  noteStats: {},
+  streak: 0,
+  bestStreak: 0
+};
+
+/* ---------- Persistence ---------- */
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (!saved) return;
+    if (Array.isArray(saved.directions)) {
+      const valid = saved.directions.filter(key => DIRECTIONS.some(d => d.key === key));
+      if (valid.length >= 1) state.directions = valid;
+    } else if (DIRECTIONS.some(d => d.key === saved.direction)) {
+      // Older saved setting with a single direction
+      state.directions = [saved.direction];
+    }
+    if (Array.isArray(saved.intervalSelection)) {
+      const valid = saved.intervalSelection.filter(code => INTERVALS.some(i => i.code === code));
+      if (valid.length >= 2) state.enabledCodes = valid;
+    }
+    if (Array.isArray(saved.enabledPcs)) {
+      const valid = saved.enabledPcs.filter(pc => Number.isInteger(pc) && pc >= 0 && pc < 12);
+      if (valid.length >= 2) state.enabledPcs = valid;
+    }
+    if (OCTAVE_RANGES[saved.octaves]) state.octaves = saved.octaves;
+    if (typeof saved.autoNext === "boolean") state.autoNext = saved.autoNext;
+    if (typeof saved.showFirst === "boolean") state.showFirst = saved.showFirst;
+    if (typeof saved.resolveToDo === "boolean") state.resolveToDo = saved.resolveToDo;
+    if (saved.noteMode === "route" || saved.noteMode === "free") state.noteMode = saved.noteMode;
+    const clampStage = value => Math.min(Math.max(0, value), LAST_STAGE);
+    if (Number.isInteger(saved.routeStage)) state.routeStage = clampStage(saved.routeStage);
+    if (Number.isInteger(saved.routeMaxStage)) state.routeMaxStage = clampStage(saved.routeMaxStage);
+    state.routeMaxStage = Math.max(state.routeMaxStage, state.routeStage);
+    if (saved.routeScores && typeof saved.routeScores === "object") {
+      Object.entries(saved.routeScores).forEach(([pc, score]) => {
+        if (Number.isFinite(score)) state.routeScores[pc] = Math.min(Math.max(0, score), NOTE_GOAL);
+      });
+    }
+    if (saved.intervalStats && typeof saved.intervalStats === "object") state.intervalStats = saved.intervalStats;
+    if (saved.noteStats && typeof saved.noteStats === "object") state.noteStats = saved.noteStats;
+    state.bestStreak = Number(saved.bestStreak) || 0;
+  } catch (error) { /* storage unavailable: start fresh */ }
+}
+function saveState() {
+  try {
+    const { streak, ...persistent } = state;
+    persistent.intervalSelection = state.enabledCodes;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistent));
+  } catch (error) { /* ignore */ }
+}
+
+/* ---------- Audio ---------- */
+let audio = null;
+let master = null;
+let activeVoices = [];
+let playbackId = 0;
+
+function createAudio() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  audio = new AudioContextClass();
+  const compressor = audio.createDynamicsCompressor();
+  master = audio.createGain();
+  master.gain.value = 0.9;
+  master.connect(compressor);
+  compressor.connect(audio.destination);
+}
+
+// Waits until the audio clock is really running; otherwise iOS/Android can
+// schedule everything at a frozen time and both notes come out together.
+async function readyAudio() {
+  if (!audio) createAudio();
+  if (audio.state !== "running") {
+    // Some phones never settle the resume promise after an interruption; don't wait forever
+    const timeout = new Promise(resolve => setTimeout(resolve, 400));
+    try { await Promise.race([audio.resume(), timeout]); } catch (error) { /* ignore */ }
+  }
+}
+
+// Quickly fades out whatever is still sounding so plays never stack up
+function stopAllVoices() {
+  const now = audio.currentTime;
+  activeVoices.forEach(voice => {
+    try {
+      voice.envelope.gain.cancelScheduledValues(now);
+      voice.envelope.gain.setValueAtTime(Math.max(voice.envelope.gain.value, 0.0001), now);
+      voice.envelope.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+      voice.oscillators.forEach(oscillator => oscillator.stop(now + 0.06));
+    } catch (error) { /* already stopped */ }
+  });
+  activeVoices = [];
+}
+
+function frequencyOf(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+function playTone(midi, startTime, duration, volume) {
+  const frequency = frequencyOf(midi);
+  const envelope = audio.createGain();
+  envelope.gain.setValueAtTime(0.0001, audio.currentTime);
+  envelope.gain.setValueAtTime(0.0001, startTime);
+  envelope.gain.exponentialRampToValueAtTime(volume, startTime + 0.012);
+  // Short notes decay sooner so the envelope points stay in time order
+  envelope.gain.exponentialRampToValueAtTime(volume * 0.45, startTime + Math.min(0.22, duration * 0.5));
+  envelope.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  envelope.connect(master);
+  const voice = { envelope, oscillators: [] };
+  // Soft piano-like timbre: fundamental plus quieter harmonics
+  [
+    { ratio: 1, type: "triangle", level: 1 },
+    { ratio: 2, type: "sine", level: 0.35 },
+    { ratio: 3, type: "sine", level: 0.12 }
+  ].forEach(partial => {
+    const oscillator = audio.createOscillator();
+    const level = audio.createGain();
+    oscillator.type = partial.type;
+    oscillator.frequency.value = frequency * partial.ratio;
+    level.gain.value = partial.level;
+    oscillator.connect(level);
+    level.connect(envelope);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration + 0.05);
+    voice.oscillators.push(oscillator);
+  });
+  activeVoices.push(voice);
+}
+
+// notes: [{ midi, offset, duration, volume }]
+async function playSequence(notes) {
+  const thisPlayback = ++playbackId;
+  await readyAudio();
+  // A newer tap arrived while waiting: let that one play instead
+  if (thisPlayback !== playbackId) return;
+  stopAllVoices();
+  const start = audio.currentTime + 0.1;
+  notes.forEach(note => playTone(note.midi, start + note.offset, note.duration, note.volume));
+}
+
+function playInterval(firstMidi, secondMidi, mode) {
+  if (mode === "together") {
+    return playSequence([
+      { midi: firstMidi, offset: 0, duration: 2.0, volume: 0.22 },
+      { midi: secondMidi, offset: 0, duration: 2.0, volume: 0.22 }
+    ]);
+  }
+  // Melodic: the first note ends before the second begins, so they never overlap
+  return playSequence([
+    { midi: firstMidi, offset: 0, duration: 0.8, volume: 0.32 },
+    { midi: secondMidi, offset: 0.95, duration: 1.4, volume: 0.32 }
+  ]);
+}
+
+function playSingle(midi) {
+  return playSequence([{ midi, offset: 0, duration: 1.5, volume: 0.32 }]);
+}
+
+/* ---------- Music theory ---------- */
+function randomItem(list) { return list[Math.floor(Math.random() * list.length)]; }
+
+function buildNote(step, accidental) {
+  const letter = ((step % 7) + 7) % 7;
+  const octave = Math.floor(step / 7);
+  const midi = 12 * (octave + 1) + LETTER_SEMITONES[letter] + accidental;
+  return { step, letter, octave, accidental, midi };
+}
+
+function accidentalSymbol(accidental) {
+  return accidental === 1 ? "♯" : accidental === -1 ? "♭" : "";
+}
+function noteLabel(note) { return SOLFEGE[note.letter] + accidentalSymbol(note.accidental); }
+function pitchClassLabel(pc) {
+  const spelling = PITCH_CLASSES[pc];
+  return SOLFEGE[spelling.letter] + accidentalSymbol(spelling.accidental);
+}
+function pitchClassLetter(pc) {
+  const spelling = PITCH_CLASSES[pc];
+  return LETTERS[spelling.letter] + (spelling.accidental ? "#" : "");
+}
+
+/* ---------- Staff drawing ---------- */
+const SVG_NS = "http://www.w3.org/2000/svg";
+const BOTTOM_LINE_Y = 104;
+const HALF_SPACE = 6;
+const E4_STEP = 4 * 7 + 2;
+const F5_STEP = E4_STEP + 8;
+
+function yOf(step) { return BOTTOM_LINE_Y - (step - E4_STEP) * HALF_SPACE; }
+
+function svgElement(name, attributes) {
+  const element = document.createElementNS(SVG_NS, name);
+  Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+  return element;
+}
+
+function ledgerLine(group, x, step) {
+  group.appendChild(svgElement("line", {
+    x1: x - 13, x2: x + 13, y1: yOf(step), y2: yOf(step), stroke: "currentColor", "stroke-width": 1.3
+  }));
+}
+
+function drawStaff(staff, notes, layout) {
+  staff.innerHTML = "";
+  for (let i = 0; i < 5; i++) {
+    const y = BOTTOM_LINE_Y - i * HALF_SPACE * 2;
+    staff.appendChild(svgElement("line", { x1: 14, x2: 306, y1: y, y2: y, stroke: "currentColor", "stroke-width": 1.3, opacity: 0.75 }));
+  }
+  const clef = svgElement("text", {
+    x: 18, y: BOTTOM_LINE_Y - HALF_SPACE * 2 + 1, "font-size": 66, fill: "currentColor",
+    "font-family": "'Noto Music', 'Bravura', 'Segoe UI Symbol', serif"
+  });
+  clef.textContent = "𝄞";
+  staff.appendChild(clef);
+
+  if (!notes) {
+    const mark = svgElement("text", {
+      x: 190, y: yOf(E4_STEP + 4) + 14, "font-size": 40, "text-anchor": "middle",
+      fill: "currentColor", opacity: 0.35, "font-weight": 800
+    });
+    mark.textContent = "?";
+    staff.appendChild(mark);
+    return;
+  }
+
+  const positions = layout === "melodic" ? [150, 235] : [190, 190];
+  const accidentalOffsets = [22, 22];
+  if (layout === "harmonic" && notes.length === 2) {
+    const upperIndex = notes[1].step > notes[0].step ? 1 : 0;
+    // Seconds: the upper notehead moves right so the two heads don't overlap
+    if (Math.abs(notes[1].step - notes[0].step) === 1) positions[upperIndex] += 17;
+    // Two accidentals: the lower one moves further left so they don't overlap
+    if (notes[0].accidental !== 0 && notes[1].accidental !== 0) accidentalOffsets[1 - upperIndex] = 38;
+  }
+  notes.forEach((note, index) => {
+    const x = positions[index];
+    const group = svgElement("g", { class: "note-in", style: `animation-delay:${index * 0.12}s` });
+    for (let s = E4_STEP - 2; s >= note.step; s -= 2) ledgerLine(group, x, s);
+    for (let s = F5_STEP + 2; s <= note.step; s += 2) ledgerLine(group, x, s);
+    const y = yOf(note.step);
+    group.appendChild(svgElement("ellipse", {
+      cx: x, cy: y, rx: 8, ry: 5.6, fill: "none", stroke: "currentColor", "stroke-width": 2.6,
+      transform: `rotate(-22 ${x} ${y})`
+    }));
+    if (note.accidental !== 0) {
+      const sign = svgElement("text", {
+        x: positions[0] === positions[1] || layout !== "harmonic" ? x - accidentalOffsets[index] : Math.min(...positions) - accidentalOffsets[index], y: y + 6, "font-size": 20, "text-anchor": "middle", fill: "currentColor",
+        "font-family": "'Noto Music', 'Segoe UI Symbol', serif"
+      });
+      sign.textContent = accidentalSymbol(note.accidental);
+      group.appendChild(sign);
+    }
+    staff.appendChild(group);
+  });
+}
+
+/* ---------- Shared quiz behaviour ---------- */
+function updateStreak(isFirstTry) {
+  state.streak = isFirstTry ? state.streak + 1 : 0;
+  state.bestStreak = Math.max(state.bestStreak, state.streak);
+  document.getElementById("streak").textContent = state.streak;
+}
+
+function recordStat(stats, key, isFirstTry) {
+  const entry = stats[key] || { correct: 0, total: 0 };
+  entry.total += 1;
+  if (isFirstTry) entry.correct += 1;
+  stats[key] = entry;
+}
+
+/*
+ * Wrong choice: only that button turns red and is locked; the person keeps trying.
+ * Right choice: reveal and finish the question.
+ */
+function handleChoice(quiz, chosenKey) {
+  const question = quiz.question;
+  if (!question) return;
+  // Tapping the green answer again moves on to the next question
+  if (question.solved) {
+    if (chosenKey === question.key) advanceManually(quiz);
+    return;
+  }
+  const button = quiz.answers.querySelector(`[data-key="${chosenKey}"]`);
+  if (chosenKey !== question.key) {
+    // Only the first mistake of a question counts against the note
+    if (!question.hadMistake && quiz.onMistake) quiz.onMistake(question);
+    question.hadMistake = true;
+    if (state.streak !== 0) updateStreak(false);
+    button.classList.add("is-wrong");
+    button.disabled = true;
+    return;
+  }
+  question.solved = true;
+  const isFirstTry = !question.hadMistake;
+  recordStat(quiz.stats(), question.key, isFirstTry);
+  updateStreak(isFirstTry);
+  saveState();
+  quiz.answers.querySelectorAll(".answer").forEach(other => { other.disabled = other !== button; });
+  button.classList.add("is-right");
+  quiz.reveal(question);
+  // afterSolve may return a custom wait in ms, or null to wait for the person
+  const delay = quiz.afterSolve ? quiz.afterSolve(question, isFirstTry) : 900;
+  quiz.mainButton.textContent = "Siguiente";
+  if (state.autoNext && delay !== null) {
+    quiz.timer = setTimeout(() => {
+      quiz.lastAutoAdvance = Date.now();
+      quiz.next();
+    }, delay);
+  }
+}
+
+function renderAnswerButtons(quiz) {
+  quiz.answers.innerHTML = "";
+  const options = quiz.options();
+  if (quiz.answers.id === "intervalAnswers") quiz.answers.classList.toggle("three", options.length > 6);
+  options.forEach(option => {
+    const button = document.createElement("button");
+    button.className = "answer";
+    button.dataset.key = option.key;
+    button.disabled = !quiz.question || quiz.question.solved;
+    button.innerHTML = `<span class="code">${option.title}</span><span class="name">${option.subtitle}</span>`;
+    button.addEventListener("click", () => handleChoice(quiz, option.key));
+    quiz.answers.appendChild(button);
+  });
+}
+
+function startQuestion(quiz) {
+  clearTimeout(quiz.timer);
+  quiz.question = quiz.create();
+  quiz.question.solved = false;
+  quiz.question.hadMistake = false;
+  quiz.prepare(quiz.question);
+  quiz.feedback.className = "feedback idle";
+  quiz.feedback.textContent = quiz.prompt;
+  quiz.mainButton.textContent = "Saltar";
+  quiz.replayButton.disabled = false;
+  renderAnswerButtons(quiz);
+  // A new question may have its own intro; Repetir always uses play()
+  if (quiz.playIntro) quiz.playIntro(quiz.question);
+  else quiz.play(quiz.question);
+}
+
+// A tap that lands just after the automatic advance would skip a question
+// the person never heard (and play two in a row), so it is ignored
+function advanceManually(quiz) {
+  if (Date.now() - (quiz.lastAutoAdvance || 0) < 800) return;
+  quiz.next();
+}
+
+function wireQuiz(quiz) {
+  quiz.next = () => startQuestion(quiz);
+  quiz.mainButton.addEventListener("click", () => advanceManually(quiz));
+  quiz.replayButton.addEventListener("click", () => { if (quiz.question) quiz.play(quiz.question); });
+  drawStaff(quiz.staff, null);
+  renderAnswerButtons(quiz);
+}
+
+function semitoneText(count) {
+  return count === 1 ? "1 semitono" : `${count} semitonos`;
+}
+
+function modeText(mode) {
+  return mode === "up" ? "subiendo" : mode === "down" ? "bajando" : "juntas";
+}
+
+/* ---------- Interval quiz ---------- */
+const intervalQuiz = {
+  question: null,
+  timer: null,
+  staff: document.getElementById("intervalStaff"),
+  caption: document.getElementById("intervalCaption"),
+  mainButton: document.getElementById("intervalMain"),
+  replayButton: document.getElementById("intervalReplay"),
+  feedback: document.getElementById("intervalFeedback"),
+  answers: document.getElementById("intervalAnswers"),
+  prompt: "¿Qué intervalo escuchaste?",
+  stats: () => state.intervalStats,
+  options: () => INTERVALS.filter(i => state.enabledCodes.includes(i.code))
+    .map(i => ({ key: i.code, title: i.code, subtitle: i.name })),
+  create() {
+    // Pick the code once; calling randomItem inside find() re-rolled it per element and could miss
+    const pickedCode = randomItem(state.enabledCodes);
+    const interval = INTERVALS.find(i => i.code === pickedCode);
+    const mode = randomItem(state.directions);
+    const sign = mode === "down" ? -1 : 1;
+    let first;
+    let second;
+    // Retry with another root if the spelling would need a double sharp or double flat
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const root = randomItem(ROOTS);
+      first = buildNote((mode === "down" ? 5 : 4) * 7 + root.letter, root.accidental);
+      const targetStep = first.step + sign * (interval.number - 1);
+      const natural = buildNote(targetStep, 0);
+      second = buildNote(targetStep, first.midi + sign * interval.semitones - natural.midi);
+      if (Math.abs(second.accidental) <= 1) break;
+    }
+    return { key: interval.code, interval, mode, first, second };
+  },
+  prepare(question) {
+    drawStaff(this.staff, null);
+    this.caption.textContent = `Dos notas ${modeText(question.mode)}`;
+  },
+  play(question) { playInterval(question.first.midi, question.second.midi, question.mode); },
+  reveal(question) {
+    drawStaff(this.staff, [question.first, question.second], question.mode === "together" ? "harmonic" : "melodic");
+    this.caption.textContent = `${noteLabel(question.first)} → ${noteLabel(question.second)} · ${semitoneText(question.interval.semitones)}`;
+    this.feedback.className = "feedback ok";
+    this.feedback.textContent = `¡Correcto! ${question.interval.name}.`;
+  }
+};
+
+/* ---------- Note quiz ---------- */
+let recentNoteMidis = [];
+const MAX_SAME_IN_A_ROW = 3;
+const noteQuiz = {
+  question: null,
+  timer: null,
+  staff: document.getElementById("noteStaff"),
+  caption: document.getElementById("noteCaption"),
+  mainButton: document.getElementById("noteMain"),
+  replayButton: document.getElementById("noteReplay"),
+  feedback: document.getElementById("noteFeedback"),
+  answers: document.getElementById("noteAnswers"),
+  prompt: "¿Qué nota es?",
+  onMistake(question) {
+    if (isRoute()) penalizeRouteNote(Number(question.key));
+  },
+  stats: () => state.noteStats,
+  options: () => activePcs().slice().sort((a, b) => a - b)
+    .map(pc => ({ key: String(pc), title: pitchClassLabel(pc), subtitle: pitchClassLetter(pc) })),
+  create() {
+    let midi;
+    let pc;
+    let octave;
+    // Truly random, repeats allowed; only a 4th identical note in a row is re-rolled
+    const isLongRun = candidate => recentNoteMidis.length >= MAX_SAME_IN_A_ROW
+      && recentNoteMidis.every(previous => previous === candidate);
+    for (let attempt = 0; attempt < 10; attempt++) {
+      pc = isRoute() ? pickRoutePc() : randomItem(activePcs());
+      octave = randomItem(activeOctaveRange());
+      midi = 12 * (octave + 1) + pc;
+      if (!isLongRun(midi)) break;
+    }
+    recentNoteMidis = recentNoteMidis.concat(midi).slice(-MAX_SAME_IN_A_ROW);
+    const spelling = PITCH_CLASSES[pc];
+    const note = buildNote(octave * 7 + spelling.letter, spelling.accidental);
+    return { key: String(pc), note };
+  },
+  prepare(question) {
+    if (state.showFirst && !isRoute()) {
+      drawStaff(this.staff, [question.note], "single");
+      this.caption.textContent = "Lee la nota y elige su nombre";
+    } else {
+      drawStaff(this.staff, null);
+      this.caption.textContent = isRoute()
+        ? "Tres notas cortas al azar y luego la que debes adivinar"
+        : "Escucha la nota";
+    }
+  },
+  play(question) { playSingle(question.note.midi); },
+  // Route: three random eighth notes to clear the ear, a pause, then the note to guess
+  playIntro(question) {
+    if (!isRoute()) return this.play(question);
+    const targetPc = ((question.note.midi % 12) + 12) % 12;
+    const eighth = 0.28;
+    const notes = [];
+    for (let i = 0; i < 3; i++) {
+      let distractor;
+      do {
+        distractor = 48 + Math.floor(Math.random() * 36);
+      } while (distractor % 12 === targetPc);
+      notes.push({ midi: distractor, offset: i * eighth, duration: 0.3, volume: 0.2 });
+    }
+    notes.push({ midi: question.note.midi, offset: 1.75, duration: 1.5, volume: 0.32 });
+    playSequence(notes);
+  },
+  reveal(question) {
+    drawStaff(this.staff, [question.note], "single");
+    this.caption.textContent = `${noteLabel(question.note)}${question.note.octave}`;
+    this.feedback.className = "feedback ok";
+    this.feedback.textContent = `¡Correcto! Es ${noteLabel(question.note)}.`;
+  },
+  afterSolve(question, isFirstTry) {
+    if (!isRoute()) return 900;
+    const resolution = state.resolveToDo
+      ? playResolution(question.note.midi)
+      : { labels: [], delay: 900 };
+    if (resolution.labels.length) {
+      this.caption.textContent = [noteLabel(question.note)].concat(resolution.labels).join(" → ");
+    }
+    const unlockedStage = recordRouteResult(Number(question.key), isFirstTry);
+    if (unlockedStage === null) return resolution.delay;
+    const stage = ROUTE_STAGES[unlockedStage];
+    this.feedback.textContent = stage.added !== null
+      ? `¡Desbloqueaste ${pitchClassLabel(stage.added)}! Toca Siguiente cuando quieras.`
+      : `¡Subiste de nivel! Ahora en ${stage.octaves} octavas. Toca Siguiente cuando quieras.`;
+    return null;
+  }
+};
+
+/* ---------- Guided route ---------- */
+function isRoute() { return state.noteMode === "route"; }
+function activePcs() { return isRoute() ? ROUTE_STAGES[state.routeStage].pcs : state.enabledPcs; }
+function activeOctaveRange() {
+  return OCTAVE_RANGES[isRoute() ? ROUTE_STAGES[state.routeStage].octaves : state.octaves];
+}
+
+// Plays the note again and walks it home to Do: below Fa♯ it steps down, from Fa♯ up it steps up
+function playResolution(midi) {
+  const pc = ((midi % 12) + 12) % 12;
+  // Do and Sol are stable notes: they don't walk anywhere
+  if (pc === 0 || pc === 7) return { labels: [], delay: 900 };
+  const base = midi - pc;
+  const path = pc < 6
+    ? NATURAL_PCS.filter(n => n < pc).reverse()
+    : NATURAL_PCS.filter(n => n > pc).concat(12);
+  const step = 0.45;
+  const notes = [{ midi, offset: 0, duration: 0.42, volume: 0.3 }].concat(path.map((n, i) => ({
+    midi: base + n,
+    offset: step * (i + 1),
+    duration: i === path.length - 1 ? 1.1 : 0.42,
+    volume: 0.3
+  })));
+  playSequence(notes);
+  return {
+    labels: path.map(n => pitchClassLabel(n % 12)),
+    delay: Math.round((step * path.length + 1.1) * 1000) + 400
+  };
+}
+
+function playChords() {
+  const chords = [[60, 64, 67], [60, 65, 69], [59, 62, 67], [60, 64, 67]];
+  const notes = [];
+  chords.forEach((chord, index) => {
+    const isLast = index === chords.length - 1;
+    chord.forEach(midi => notes.push({ midi, offset: index * 0.75, duration: isLast ? 1.6 : 0.7, volume: 0.14 }));
+  });
+  playSequence(notes);
+}
+
+// Returns the new stage index when this answer unlocks the next step, otherwise null
+function routeScore(pc) { return state.routeScores[pc] || 0; }
+
+// Random, but notes you haven't mastered yet come up more often
+function pickRoutePc() {
+  const pcs = activePcs();
+  const weights = pcs.map(pc => NOTE_GOAL - routeScore(pc) + 1);
+  let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+  for (let i = 0; i < pcs.length; i++) {
+    roll -= weights[i];
+    if (roll < 0) return pcs[i];
+  }
+  return pcs[pcs.length - 1];
+}
+
+let droppedPc = null;
+let droppedTimer = null;
+function penalizeRouteNote(pc) {
+  state.routeScores[pc] = Math.max(0, routeScore(pc) - MISTAKE_PENALTY);
+  saveState();
+  droppedPc = pc;
+  renderRoute();
+  clearTimeout(droppedTimer);
+  droppedTimer = setTimeout(() => { droppedPc = null; renderRoute(); }, 1200);
+}
+
+// Returns the new stage index when this answer completes the step, otherwise null
+function recordRouteResult(pc, isFirstTry) {
+  if (!isFirstTry) return null; // already penalized when the mistake happened
+  state.routeScores[pc] = Math.min(NOTE_GOAL, routeScore(pc) + 1);
+  let unlocked = null;
+  const allMastered = activePcs().every(note => routeScore(note) >= NOTE_GOAL);
+  if (state.routeStage < LAST_STAGE && allMastered) {
+    state.routeStage += 1;
+    state.routeMaxStage = Math.max(state.routeMaxStage, state.routeStage);
+    state.routeScores = {};
+    unlocked = state.routeStage;
+  }
+  saveState();
+  renderRoute();
+  return unlocked;
+}
+
+function renderRoute() {
+  const modeChips = document.getElementById("noteModeChips");
+  modeChips.innerHTML = "";
+  [{ key: "route", label: "Ruta guiada" }, { key: "free", label: "Libre" }].forEach(mode => {
+    modeChips.appendChild(makeChip(mode.label, state.noteMode === mode.key, () => {
+      if (state.noteMode === mode.key) return;
+      state.noteMode = mode.key;
+      saveState();
+      renderRoute();
+      resetQuiz(noteQuiz);
+    }));
+  });
+  document.getElementById("routeCard").hidden = !isRoute();
+  document.getElementById("routeControls").hidden = !isRoute();
+  document.getElementById("freeSettings").hidden = isRoute();
+  if (!isRoute()) return;
+
+  const stage = ROUTE_STAGES[state.routeStage];
+  document.getElementById("routeStep").textContent = `Paso ${state.routeStage + 1} de ${ROUTE_STAGES.length}`;
+  document.getElementById("routeNew").textContent = stage.added !== null
+    ? `Nueva: ${pitchClassLabel(stage.added)}`
+    : stage.octaves > 1 ? `Ahora ${stage.octaves} octavas` : "";
+  document.getElementById("routeNotes").textContent = stage.octaves === 1 ? "En 1 octava" : `En ${stage.octaves} octavas`;
+
+  const pcs = stage.pcs.slice().sort((a, b) => a - b);
+  const scores = document.getElementById("routeScores");
+  scores.innerHTML = "";
+  pcs.forEach(pc => {
+    const score = routeScore(pc);
+    const pill = document.createElement("div");
+    pill.className = "score-pill" + (score >= NOTE_GOAL ? " done" : "") + (pc === droppedPc ? " dropped" : "");
+    pill.innerHTML = `${pitchClassLabel(pc)} <span class="pts">${score}/${NOTE_GOAL}</span><div class="mini"><div style="width:${score / NOTE_GOAL * 100}%"></div></div>`;
+    scores.appendChild(pill);
+  });
+
+  const earned = pcs.reduce((sum, pc) => sum + routeScore(pc), 0);
+  const progress = document.getElementById("routeProgress");
+  const bar = document.getElementById("routeBar");
+  bar.style.width = `${earned / (NOTE_GOAL * pcs.length) * 100}%`;
+  const missing = pcs.filter(pc => routeScore(pc) < NOTE_GOAL).map(pitchClassLabel);
+  if (state.routeStage === LAST_STAGE) {
+    progress.textContent = "Llegaste al final de la ruta. Sigue practicando aquí o vuelve a un paso anterior.";
+  } else {
+    progress.textContent = `Cada nota necesita ${NOTE_GOAL} puntos: acertar a la primera suma 1 y equivocarte resta ${MISTAKE_PENALTY}. `
+      + (missing.length ? `Te falta dominar: ${missing.join(", ")}.` : "");
+  }
+  document.getElementById("routeBack").disabled = state.routeStage === 0;
+  document.getElementById("routeForward").disabled = state.routeStage >= state.routeMaxStage;
+  document.getElementById("resolveBox").checked = state.resolveToDo;
+}
+
+function setRouteStage(stageIndex) {
+  state.routeStage = Math.min(Math.max(0, stageIndex), state.routeMaxStage);
+  state.routeScores = {};
+  saveState();
+  renderRoute();
+  refreshQuizAfterChange(noteQuiz, () => activePcs().includes(Number(noteQuiz.question.key)));
+}
+
+function resetQuiz(quiz) {
+  clearTimeout(quiz.timer);
+  quiz.question = null;
+  drawStaff(quiz.staff, null);
+  quiz.caption.textContent = "Toca Empezar y escucha una nota";
+  quiz.mainButton.textContent = "Empezar";
+  quiz.replayButton.disabled = true;
+  quiz.feedback.className = "feedback idle";
+  quiz.feedback.textContent = quiz.prompt;
+  renderAnswerButtons(quiz);
+}
+
+document.getElementById("routeBack").addEventListener("click", () => setRouteStage(state.routeStage - 1));
+document.getElementById("routeForward").addEventListener("click", () => setRouteStage(state.routeStage + 1));
+document.getElementById("routeChords").addEventListener("click", playChords);
+document.getElementById("resolveBox").addEventListener("change", event => {
+  state.resolveToDo = event.target.checked;
+  saveState();
+});
+
+/* ---------- Settings ---------- */
+function makeChip(label, isOn, onClick, ariaLabel) {
+  const chip = document.createElement("button");
+  chip.className = "chip";
+  chip.textContent = label;
+  chip.setAttribute("aria-pressed", String(isOn));
+  if (ariaLabel) chip.setAttribute("aria-label", ariaLabel);
+  chip.addEventListener("click", onClick);
+  return chip;
+}
+
+function refreshQuizAfterChange(quiz, isQuestionStillValid) {
+  if (quiz.question && !quiz.question.solved && !isQuestionStillValid()) quiz.next();
+  else renderAnswerButtons(quiz);
+  if (quiz.question && quiz.question.solved) {
+    quiz.answers.querySelectorAll(".answer").forEach(button => {
+      if (button.dataset.key === quiz.question.key) button.classList.add("is-right");
+    });
+  }
+}
+
+function renderIntervalSettings() {
+  const directionChips = document.getElementById("directionChips");
+  directionChips.innerHTML = "";
+  DIRECTIONS.forEach(direction => {
+    const isOn = state.directions.includes(direction.key);
+    directionChips.appendChild(makeChip(direction.label, isOn, () => {
+      // At least one way of playing must stay active
+      if (isOn && state.directions.length <= 1) return;
+      state.directions = isOn
+        ? state.directions.filter(key => key !== direction.key)
+        : DIRECTIONS.map(d => d.key).filter(key => key === direction.key || state.directions.includes(key));
+      saveState();
+      renderIntervalSettings();
+    }));
+  });
+
+  const intervalChips = document.getElementById("intervalChips");
+  intervalChips.innerHTML = "";
+  INTERVALS.forEach(interval => {
+    const isOn = state.enabledCodes.includes(interval.code);
+    intervalChips.appendChild(makeChip(interval.code, isOn, () => {
+      if (isOn && state.enabledCodes.length <= 2) return;
+      state.enabledCodes = isOn
+        ? state.enabledCodes.filter(code => code !== interval.code)
+        : INTERVALS.map(i => i.code).filter(code => code === interval.code || state.enabledCodes.includes(code));
+      saveState();
+      renderIntervalSettings();
+      refreshQuizAfterChange(intervalQuiz, () => state.enabledCodes.includes(intervalQuiz.question.key));
+    }, interval.name));
+  });
+}
+
+function renderNoteSettings() {
+  const octaveChips = document.getElementById("octaveChips");
+  octaveChips.innerHTML = "";
+  [1, 2, 3].forEach(count => {
+    const label = count === 1 ? "1 octava" : `${count} octavas`;
+    octaveChips.appendChild(makeChip(label, state.octaves === count, () => {
+      state.octaves = count;
+      saveState();
+      renderNoteSettings();
+    }));
+  });
+
+  const noteChips = document.getElementById("noteChips");
+  noteChips.innerHTML = "";
+  PITCH_CLASSES.forEach(({ pc }) => {
+    const isOn = state.enabledPcs.includes(pc);
+    noteChips.appendChild(makeChip(pitchClassLabel(pc), isOn, () => {
+      if (isOn && state.enabledPcs.length <= 2) return;
+      state.enabledPcs = isOn ? state.enabledPcs.filter(p => p !== pc) : state.enabledPcs.concat(pc);
+      applyNoteSelection();
+    }));
+  });
+
+  document.getElementById("showFirstBox").checked = state.showFirst;
+}
+
+function applyNoteSelection() {
+  saveState();
+  renderNoteSettings();
+  refreshQuizAfterChange(noteQuiz, () => state.enabledPcs.includes(Number(noteQuiz.question.key)));
+}
+
+function applyIntervalSelection(codes) {
+  state.enabledCodes = codes.slice();
+  saveState();
+  renderIntervalSettings();
+  refreshQuizAfterChange(intervalQuiz, () => state.enabledCodes.includes(intervalQuiz.question.key));
+}
+document.getElementById("pickBasic").addEventListener("click", () => applyIntervalSelection(BASIC_CODES));
+document.getElementById("pickAllIntervals").addEventListener("click", () => applyIntervalSelection(INTERVALS.map(i => i.code)));
+
+document.getElementById("pickNaturals").addEventListener("click", () => {
+  state.enabledPcs = NATURAL_PCS.slice();
+  applyNoteSelection();
+});
+document.getElementById("pickAll").addEventListener("click", () => {
+  state.enabledPcs = PITCH_CLASSES.map(p => p.pc);
+  applyNoteSelection();
+});
+document.getElementById("showFirstBox").addEventListener("change", event => {
+  state.showFirst = event.target.checked;
+  saveState();
+});
+document.querySelectorAll(".autoNextBox").forEach(box => {
+  box.checked = state.autoNext;
+  box.addEventListener("change", event => {
+    state.autoNext = event.target.checked;
+    document.querySelectorAll(".autoNextBox").forEach(other => { other.checked = state.autoNext; });
+    saveState();
+  });
+});
+
+/* ---------- Learn ---------- */
+function renderLearn() {
+  const list = document.getElementById("learnList");
+  list.innerHTML = "";
+  const base = 60;
+  INTERVALS.forEach(interval => {
+    const item = document.createElement("li");
+    item.innerHTML = `
+      <h3>${interval.code} · ${interval.name} <span>${semitoneText(interval.semitones)}</span></h3>
+      <div class="refs">Subiendo: ${interval.up}${interval.down ? `<br>Bajando: ${interval.down}` : ""}</div>
+      <div class="segmented"></div>`;
+    const buttons = item.querySelector(".segmented");
+    [
+      { label: "Subiendo", play: () => playInterval(base, base + interval.semitones, "up") },
+      { label: "Bajando", play: () => playInterval(base + 12, base + 12 - interval.semitones, "down") },
+      { label: "Juntas", play: () => playInterval(base, base + interval.semitones, "together") }
+    ].forEach(option => {
+      const button = document.createElement("button");
+      button.className = "chip";
+      button.textContent = option.label;
+      button.addEventListener("click", option.play);
+      buttons.appendChild(button);
+    });
+    list.appendChild(item);
+  });
+}
+
+/* ---------- Progress ---------- */
+function renderBars(container, rows, stats, totalId, pctId) {
+  let correct = 0;
+  let total = 0;
+  container.innerHTML = "";
+  rows.forEach(row => {
+    const entry = stats[row.key] || { correct: 0, total: 0 };
+    correct += entry.correct;
+    total += entry.total;
+    const pct = entry.total ? Math.round((entry.correct / entry.total) * 100) : 0;
+    const element = document.createElement("div");
+    element.className = "bar-row";
+    element.innerHTML = `
+      <div class="bar-head">
+        <span>${row.label}</span>
+        <span><span class="pct">${entry.total ? pct + "%" : "–"}</span> <span class="count">(${entry.correct}/${entry.total})</span></span>
+      </div>
+      <div class="bar"><div style="width:${pct}%"></div></div>`;
+    container.appendChild(element);
+  });
+  document.getElementById(totalId).textContent = total;
+  document.getElementById(pctId).textContent = total ? Math.round((correct / total) * 100) + "%" : "–";
+}
+
+function renderProgress() {
+  renderBars(document.getElementById("intervalBars"),
+    INTERVALS.map(i => ({ key: i.code, label: `${i.code} · ${i.name}` })),
+    state.intervalStats, "intervalTotal", "intervalPct");
+  const noteRows = PITCH_CLASSES
+    .filter(({ pc }) => activePcs().includes(pc) || state.noteStats[String(pc)])
+    .map(({ pc }) => ({ key: String(pc), label: pitchClassLabel(pc) }));
+  renderBars(document.getElementById("noteBars"), noteRows, state.noteStats, "noteTotal", "notePct");
+  document.getElementById("bestStreak").textContent = state.bestStreak;
+}
+
+document.getElementById("resetButton").addEventListener("click", () => {
+  if (!confirm("¿Borrar todas tus estadísticas?")) return;
+  state.intervalStats = {};
+  state.noteStats = {};
+  state.streak = 0;
+  state.bestStreak = 0;
+  document.getElementById("streak").textContent = 0;
+  saveState();
+  renderProgress();
+});
+
+/* ---------- Tabs ---------- */
+const TAB_TITLES = { intervals: "Intervalos", notes: "Notas", learn: "Aprender", progress: "Progreso" };
+Object.keys(TAB_TITLES).forEach(name => {
+  document.getElementById(`tab-${name}`).addEventListener("click", () => {
+    Object.keys(TAB_TITLES).forEach(other => {
+      document.getElementById(`tab-${other}`).setAttribute("aria-selected", String(other === name));
+      document.getElementById(`panel-${other}`).hidden = other !== name;
+    });
+    document.getElementById("screenTitle").textContent = TAB_TITLES[name];
+    // Leaving a screen cancels its pending "next question" and silences any sound
+    clearTimeout(intervalQuiz.timer);
+    clearTimeout(noteQuiz.timer);
+    playbackId++;
+    if (audio) stopAllVoices();
+    if (name === "progress") renderProgress();
+    window.scrollTo(0, 0);
+  });
+});
+
+/* ---------- Start ---------- */
+loadState();
+document.querySelectorAll(".autoNextBox").forEach(box => { box.checked = state.autoNext; });
+renderIntervalSettings();
+renderNoteSettings();
+renderRoute();
+wireQuiz(intervalQuiz);
+wireQuiz(noteQuiz);
+renderLearn();
+</script>
+</body>
+</html>
