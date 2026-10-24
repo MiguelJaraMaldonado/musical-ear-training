@@ -47,6 +47,12 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
 .streak { color: var(--muted); font-size: 0.95rem; white-space: nowrap; }
+.top-right { display: flex; align-items: center; gap: 12px; }
+.icon-button {
+  border: 2px solid var(--line); background: transparent; color: var(--ink);
+  border-radius: 12px; width: 42px; height: 42px; padding: 0;
+  display: grid; place-items: center; flex-shrink: 0;
+}
 .streak strong { color: var(--ink); font-size: 1.15rem; }
 
 .staff-wrap { background: var(--surface); border-radius: 22px; padding: 6px 6px 4px; border: 1px solid var(--line); }
@@ -92,6 +98,41 @@ header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; ma
 .chip:disabled { opacity: 0.4; cursor: default; }
 .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .answers.three { grid-template-columns: repeat(3, 1fr); }
+
+/* Piano answer keyboard */
+.piano {
+  --black-width: 10%;
+  --key-white: #FBFAF6;
+  --key-edge: #B9C1CF;
+  position: relative; display: flex; gap: 3px; height: 200px; margin-top: 4px;
+  -webkit-user-select: none; user-select: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .piano { --key-white: #E4E1D8; --key-edge: #0B0F1C; }
+}
+:root[data-theme="dark"] .piano { --key-white: #E4E1D8; --key-edge: #0B0F1C; }
+.piano .answer.piano-key {
+  min-height: 0; text-align: center; align-items: center; justify-content: flex-end;
+  display: flex; flex-direction: column; opacity: 1;
+}
+.piano .answer.white {
+  flex: 1; height: 100%; padding: 0 0 12px;
+  background: var(--key-white); color: #18233F;
+  border: 1.5px solid var(--key-edge); border-radius: 0 0 10px 10px;
+}
+.piano .answer.black {
+  position: absolute; top: 0; z-index: 2; width: var(--black-width); height: 58%;
+  padding: 0 0 8px; background: #1B1E26; color: #F2F2F2;
+  border: 1.5px solid #000; border-radius: 0 0 7px 7px;
+}
+.piano .solfege { font-weight: 800; font-size: 0.9rem; line-height: 1.1; }
+.piano .letter { font-size: 0.75rem; opacity: 0.7; }
+.piano .black .solfege { font-size: 0.62rem; }
+.piano .black .letter { font-size: 0.58rem; }
+.piano .answer.off { opacity: 0.35; }
+.piano .answer:not(:disabled):active { transform: translateY(2px); }
+.piano .answer.is-right { background: #2E9E62; border-color: #1F7A4D; color: #FFFFFF; opacity: 1; }
+.piano .answer.is-wrong { background: #D9534F; border-color: #B3362E; color: #FFFFFF; opacity: 1; }
 .answer {
   border: 2px solid var(--line); background: var(--surface); border-radius: 16px;
   padding: 12px 14px; text-align: left; min-height: 66px;
@@ -163,7 +204,10 @@ section[hidden] { display: none; }
 <main>
   <header class="top">
     <h1 id="screenTitle">Intervalos</h1>
-    <div class="streak">Racha <strong id="streak">0</strong></div>
+    <div class="top-right">
+      <div class="streak">Racha <strong id="streak">0</strong></div>
+      <button class="icon-button" id="fullscreenButton" hidden aria-label="Pantalla completa"></button>
+    </div>
   </header>
 
   <!-- INTERVALOS -->
@@ -219,7 +263,7 @@ section[hidden] { display: none; }
       <button class="play-again" id="noteReplay" disabled>Repetir</button>
     </div>
     <div class="feedback idle" id="noteFeedback" aria-live="polite">¿Qué nota es?</div>
-    <div class="answers three" id="noteAnswers"></div>
+    <div class="piano" id="noteAnswers" aria-label="Teclado de piano"></div>
 
     <div class="route-controls" id="routeControls">
       <div class="segmented">
@@ -692,6 +736,10 @@ function handleChoice(quiz, chosenKey) {
 }
 
 function renderAnswerButtons(quiz) {
+  if (quiz.renderAnswers) {
+    quiz.renderAnswers();
+    return;
+  }
   quiz.answers.innerHTML = "";
   const options = quiz.options();
   if (quiz.answers.id === "intervalAnswers") quiz.answers.classList.toggle("three", options.length > 6);
@@ -804,6 +852,33 @@ const noteQuiz = {
   feedback: document.getElementById("noteFeedback"),
   answers: document.getElementById("noteAnswers"),
   prompt: "¿Qué nota es?",
+  // One-octave piano: every key is shown so the layout becomes familiar,
+  // keys outside the current selection are dimmed and can't be pressed
+  renderAnswers() {
+    const active = activePcs();
+    const isOpen = Boolean(this.question) && !this.question.solved;
+    const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
+    // "at" = the white-key boundary the black key sits on (1 = between Do and Re)
+    const blackKeys = [{ pc: 1, at: 1 }, { pc: 3, at: 2 }, { pc: 6, at: 4 }, { pc: 8, at: 5 }, { pc: 10, at: 6 }];
+    const makeKey = (pc, color) => {
+      const key = document.createElement("button");
+      const isActive = active.includes(pc);
+      key.className = `answer piano-key ${color}` + (isActive ? "" : " off");
+      key.dataset.key = String(pc);
+      key.disabled = !isOpen || !isActive;
+      key.setAttribute("aria-label", pitchClassLabel(pc));
+      key.innerHTML = `<span class="solfege">${pitchClassLabel(pc)}</span><span class="letter">${pitchClassLetter(pc)}</span>`;
+      key.addEventListener("click", () => handleChoice(this, String(pc)));
+      return key;
+    };
+    this.answers.innerHTML = "";
+    whiteKeys.forEach(pc => this.answers.appendChild(makeKey(pc, "white")));
+    blackKeys.forEach(({ pc, at }) => {
+      const key = makeKey(pc, "black");
+      key.style.left = `calc(${(at / 7) * 100}% - var(--black-width) / 2)`;
+      this.answers.appendChild(key);
+    });
+  },
   onMistake(question) {
     if (isRoute()) penalizeRouteNote(Number(question.key));
   },
@@ -1248,6 +1323,41 @@ Object.keys(TAB_TITLES).forEach(name => {
     window.scrollTo(0, 0);
   });
 });
+
+/* ---------- Fullscreen (Android and desktop; iPhone Safari doesn't allow it for pages) ---------- */
+const ENTER_FULLSCREEN_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+const EXIT_FULLSCREEN_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+const fullscreenButton = document.getElementById("fullscreenButton");
+
+function isFullscreen() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function updateFullscreenButton() {
+  const isOn = isFullscreen();
+  fullscreenButton.innerHTML = isOn ? EXIT_FULLSCREEN_ICON : ENTER_FULLSCREEN_ICON;
+  fullscreenButton.setAttribute("aria-label", isOn ? "Salir de pantalla completa" : "Pantalla completa");
+}
+
+// The button only appears where the browser really allows it, so it never shows up dead on iPhone
+if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
+  fullscreenButton.hidden = false;
+  updateFullscreenButton();
+  fullscreenButton.addEventListener("click", async () => {
+    try {
+      if (isFullscreen()) {
+        await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
+      } else {
+        const root = document.documentElement;
+        await (root.requestFullscreen
+          ? root.requestFullscreen({ navigationUI: "hide" })
+          : root.webkitRequestFullscreen());
+      }
+    } catch (error) { /* the browser refused; nothing to do */ }
+  });
+  document.addEventListener("fullscreenchange", updateFullscreenButton);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
+}
 
 /* ---------- Start ---------- */
 loadState();
