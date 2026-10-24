@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#18233F">
+<meta name="theme-color" content="#141414">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Oído de intervalos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Music&display=swap" rel="stylesheet">
 <style>
+/* Piano palette: bone white, black and dark greys */
 :root {
-  --bg: #E9EEF5; --surface: #FFFFFF; --ink: #18233F; --muted: #5A6683; --line: #C9D2E1;
-  --accent: #A8711A; --accent-ink: #FFFFFF; --ok: #1F7A4D; --bad: #B3362E;
-  --ok-soft: #DCF1E5; --bad-soft: #F7E0DE;
+  --bg: #EFE9DD; --surface: #F8F4EA; --ink: #141414; --muted: #5C5852; --line: #D3CBBB;
+  --accent: #1E1E1E; --accent-ink: #F3EDE0; --ok: #2E7D50; --bad: #A8382F;
+  --ok-soft: #DDEBDD; --bad-soft: #F2DCD6;
   color-scheme: light;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
@@ -21,16 +22,16 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #10172A; --surface: #1A2340; --ink: #E6EBF5; --muted: #9AA6C2; --line: #33406A;
-    --accent: #E3B04B; --accent-ink: #1A1405; --ok: #4CC38A; --bad: #F07167;
-    --ok-soft: #173A2C; --bad-soft: #43221F;
+    --bg: #0F0F0F; --surface: #1C1C1C; --ink: #EDE6D6; --muted: #A39C8F; --line: #343434;
+    --accent: #EDE6D6; --accent-ink: #121212; --ok: #5BBF85; --bad: #E8766B;
+    --ok-soft: #1C3326; --bad-soft: #3A201D;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #10172A; --surface: #1A2340; --ink: #E6EBF5; --muted: #9AA6C2; --line: #33406A;
-  --accent: #E3B04B; --accent-ink: #1A1405; --ok: #4CC38A; --bad: #F07167;
-  --ok-soft: #173A2C; --bad-soft: #43221F;
+  --bg: #0F0F0F; --surface: #1C1C1C; --ink: #EDE6D6; --muted: #A39C8F; --line: #343434;
+  --accent: #EDE6D6; --accent-ink: #121212; --ok: #5BBF85; --bad: #E8766B;
+  --ok-soft: #1C3326; --bad-soft: #3A201D;
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: inherit; }
@@ -40,17 +41,21 @@ body {
   font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 17px; line-height: 1.45; -webkit-tap-highlight-color: transparent;
 }
-main { max-width: 520px; margin: 0 auto; padding: 18px 18px 110px; }
+main { max-width: 520px; margin: 0 auto; padding: 18px 18px 40px; }
 button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
-.streak { color: var(--muted); font-size: 0.95rem; white-space: nowrap; }
-.top-right { display: flex; align-items: center; gap: 12px; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+header.top h1 {
+  font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; margin: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.top-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.streak { color: var(--muted); font-size: 0.88rem; white-space: nowrap; }
+.top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .icon-button {
   border: 2px solid var(--line); background: transparent; color: var(--ink);
-  border-radius: 12px; width: 42px; height: 42px; padding: 0;
+  border-radius: 12px; width: 40px; height: 40px; padding: 0;
   display: grid; place-items: center; flex-shrink: 0;
 }
 .streak strong { color: var(--ink); font-size: 1.15rem; }
@@ -75,14 +80,25 @@ header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; ma
 .feedback.idle { color: var(--muted); padding-left: 2px; }
 
 [hidden] { display: none !important; }
-.mode-switch { margin-bottom: 12px; }
-.route-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
-.route-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.route-head strong { font-size: 1.1rem; }
-.route-new { color: var(--accent); font-weight: 600; font-size: 0.95rem; }
+.route-strip { margin: 2px 0 6px; }
+.route-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 0.95rem; }
+.route-head strong { font-weight: 800; }
+.route-new { color: var(--muted); }
+.route-pct { font-weight: 800; white-space: nowrap; }
+.route-rules { color: var(--muted); font-size: 0.95rem; margin: 14px 0 4px; }
+/* Meter strip aligned with the piano below: black-key meters on top, white-key meters underneath */
+.piano-meter { --black-width: 10%; position: relative; height: 30px; }
+.meter-row.white-row { position: absolute; left: 0; right: 0; bottom: 0; height: 11px; display: flex; gap: 3px; }
+.meter-row.white-row .meter-cell { flex: 1; padding: 0 4px; }
+.meter-row.black-row .meter-cell { position: absolute; top: 0; height: 11px; width: var(--black-width); padding: 0 1px; }
+.meter-cell { display: flex; gap: 2px; }
+.meter-cell .pip { flex: 1; border-radius: 2px; background: var(--line); transition: background .2s; }
+.meter-cell .pip.on { background: var(--ink); }
+.meter-cell.done .pip { background: var(--ok); }
+.meter-cell.dropped .pip { background: var(--bad-soft); }
+.meter-cell.dropped .pip.on { background: var(--bad); }
 .route-notes { color: var(--muted); margin: 2px 0 10px; }
 .route-progress { color: var(--muted); font-size: 0.92rem; margin: 0 0 10px; }
-.route-controls { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 14px; }
 .route-scores { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
 .score-pill {
   border: 1.5px solid var(--line); border-radius: 10px; padding: 4px 8px 6px;
@@ -102,34 +118,39 @@ header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; ma
 /* Piano answer keyboard */
 .piano {
   --black-width: 10%;
-  --key-white: #FBFAF6;
-  --key-edge: #B9C1CF;
+  --key-white: #F6F1E6;
+  --key-edge: #BDB5A5;
+  --key-off-white: #DCD5C6;
+  --key-off-black: #6E6A64;
   position: relative; display: flex; gap: 3px; height: 200px; margin-top: 4px;
   -webkit-user-select: none; user-select: none;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .piano { --key-white: #E4E1D8; --key-edge: #0B0F1C; }
+  :root:not([data-theme="light"]) .piano { --key-white: #E9E2D1; --key-edge: #000000; --key-off-white: #77726A; --key-off-black: #333333; }
 }
-:root[data-theme="dark"] .piano { --key-white: #E4E1D8; --key-edge: #0B0F1C; }
+:root[data-theme="dark"] .piano { --key-white: #E9E2D1; --key-edge: #000000; --key-off-white: #77726A; --key-off-black: #333333; }
 .piano .answer.piano-key {
   min-height: 0; text-align: center; align-items: center; justify-content: flex-end;
   display: flex; flex-direction: column; opacity: 1;
 }
 .piano .answer.white {
   flex: 1; height: 100%; padding: 0 0 12px;
-  background: var(--key-white); color: #18233F;
+  background: var(--key-white); color: #1A1A1A;
   border: 1.5px solid var(--key-edge); border-radius: 0 0 10px 10px;
 }
 .piano .answer.black {
   position: absolute; top: 0; z-index: 2; width: var(--black-width); height: 58%;
-  padding: 0 0 8px; background: #1B1E26; color: #F2F2F2;
+  padding: 0 0 8px; background: #111111; color: #EDE6D6;
   border: 1.5px solid #000; border-radius: 0 0 7px 7px;
 }
 .piano .solfege { font-weight: 800; font-size: 0.9rem; line-height: 1.1; }
 .piano .letter { font-size: 0.75rem; opacity: 0.7; }
 .piano .black .solfege { font-size: 0.62rem; }
 .piano .black .letter { font-size: 0.58rem; }
-.piano .answer.off { opacity: 0.35; }
+/* Keys not in play stay solid (no see-through black keys), just greyed out */
+.piano .answer.white.off { background: var(--key-off-white); }
+.piano .answer.black.off { background: var(--key-off-black); }
+.piano .answer.off span { opacity: 0.4; }
 .piano .answer:not(:disabled):active { transform: translateY(2px); }
 .piano .answer.is-right { background: #2E9E62; border-color: #1F7A4D; color: #FFFFFF; opacity: 1; }
 .piano .answer.is-wrong { background: #D9534F; border-color: #B3362E; color: #FFFFFF; opacity: 1; }
@@ -147,8 +168,25 @@ header.top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; ma
 .answer.is-wrong .name { color: var(--bad); }
 .answers:not(.three) .answer:last-child:nth-child(odd) { grid-column: 1 / -1; }
 
-details.settings { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 12px; }
-details.settings summary { font-weight: 600; cursor: pointer; padding: 6px 0; }
+.sheet {
+  position: fixed; inset: 0; z-index: 20; background: var(--bg);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+}
+.sheet-inner { max-width: 520px; margin: 0 auto; padding: 0 18px; }
+.sheet-head {
+  position: sticky; top: 0; z-index: 1; background: var(--bg);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 0 12px;
+  border-bottom: 1px solid var(--line); margin-bottom: 6px;
+}
+.sheet-head h2 { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.01em; }
+.sheet-done {
+  border: none; background: var(--accent); color: var(--accent-ink);
+  font-weight: 800; border-radius: 999px; padding: 10px 22px; min-height: 44px;
+}
+.sheet-group-title { font-size: 1.05rem; font-weight: 800; margin: 24px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+
 .setting-group { margin: 12px 0 4px; }
 .setting-group p { margin: 0 0 8px; color: var(--muted); font-size: 0.95rem; }
 .segmented { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -181,17 +219,30 @@ h2.group { font-size: 1.15rem; margin: 24px 0 2px; }
 .reset { margin-top: 22px; border: 2px solid var(--bad); color: var(--bad); background: transparent; border-radius: 999px; padding: 10px 18px; font-weight: 600; }
 .tip { color: var(--muted); font-size: 0.9rem; margin-top: 18px; }
 
-nav.tabs {
-  position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface);
-  border-top: 1px solid var(--line); display: flex; justify-content: center;
-  padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5;
+/* Collapsible side menu */
+.drawer-backdrop {
+  position: fixed; inset: 0; z-index: 29; background: rgba(0, 0, 0, 0.5);
+  opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s;
 }
-nav.tabs .inner { display: flex; width: 100%; max-width: 520px; }
-nav.tabs button {
-  flex: 1; border: none; background: none; padding: 12px 2px 14px; font-weight: 600;
-  color: var(--muted); font-size: 0.95rem; border-top: 3px solid transparent;
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 30;
+  width: min(80vw, 300px); background: var(--surface); border-right: 1px solid var(--line);
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 12px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  overflow-y: auto; transform: translateX(-100%); visibility: hidden;
+  transition: transform .22s ease-out, visibility .22s;
 }
-nav.tabs button[aria-selected="true"] { color: var(--ink); border-top-color: var(--accent); }
+body.drawer-open .drawer { transform: none; visibility: visible; }
+body.drawer-open .drawer-backdrop { opacity: 1; visibility: visible; }
+.drawer-head { font-weight: 800; font-size: 1.15rem; padding: 4px 12px 14px; letter-spacing: -0.01em; }
+.drawer-list { display: flex; flex-direction: column; gap: 4px; }
+.drawer-list button {
+  border: none; background: none; text-align: left; border-radius: 12px;
+  padding: 12px 12px 12px 16px; border-left: 4px solid transparent;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.drawer-list .item-title { font-weight: 700; font-size: 1.05rem; }
+.drawer-list .item-sub { color: var(--muted); font-size: 0.85rem; }
+.drawer-list button[aria-selected="true"] { background: var(--bg); border-left-color: var(--accent); }
 section[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -203,9 +254,13 @@ section[hidden] { display: none; }
 <body>
 <main>
   <header class="top">
-    <h1 id="screenTitle">Intervalos</h1>
+    <div class="top-left">
+      <button class="icon-button" id="menuButton" aria-label="Abrir menú" aria-controls="drawer" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <h1 id="screenTitle">Intervalos</h1>
+    </div>
     <div class="top-right">
       <div class="streak">Racha <strong id="streak">0</strong></div>
+      <button class="icon-button" id="settingsButton" aria-label="Ajustes"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h3M13 17h7"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button>
       <button class="icon-button" id="fullscreenButton" hidden aria-label="Pantalla completa"></button>
     </div>
   </header>
@@ -223,37 +278,10 @@ section[hidden] { display: none; }
     <div class="feedback idle" id="intervalFeedback" aria-live="polite">¿Qué intervalo escuchaste?</div>
     <div class="answers" id="intervalAnswers"></div>
 
-    <details class="settings">
-      <summary>Ajustes de intervalos</summary>
-      <div class="setting-group">
-        <p>Cómo suenan las notas (activa una o varias)</p>
-        <div class="segmented" id="directionChips"></div>
-      </div>
-      <div class="setting-group">
-        <p>Intervalos incluidos (mínimo dos)</p>
-        <div class="segmented" id="intervalChips"></div>
-        <div class="segmented" style="margin-top:8px">
-          <button class="chip small" id="pickBasic">Solo m3, M3, P4, P5 y P8</button>
-          <button class="chip small" id="pickAllIntervals">Todos</button>
-        </div>
-      </div>
-      <label class="toggle-line">
-        <input type="checkbox" class="autoNextBox">
-        Pasar sola a la siguiente cuando acierto
-      </label>
-    </details>
   </section>
 
   <!-- NOTAS -->
   <section id="panel-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
-    <div class="segmented mode-switch" id="noteModeChips"></div>
-    <div class="route-card" id="routeCard">
-      <div class="route-head"><strong id="routeStep"></strong><span class="route-new" id="routeNew"></span></div>
-      <div class="route-notes" id="routeNotes"></div>
-      <div class="route-progress" id="routeProgress"></div>
-      <div class="route-scores" id="routeScores"></div>
-      <div class="bar"><div id="routeBar"></div></div>
-    </div>
     <div class="staff-wrap">
       <svg id="noteStaff" viewBox="0 0 320 170" role="img" aria-label="Pentagrama"></svg>
       <div class="staff-caption" id="noteCaption">Toca Empezar y escucha una nota</div>
@@ -263,43 +291,16 @@ section[hidden] { display: none; }
       <button class="play-again" id="noteReplay" disabled>Repetir</button>
     </div>
     <div class="feedback idle" id="noteFeedback" aria-live="polite">¿Qué nota es?</div>
+    <!-- Reto: each note's points sit right above its own key -->
+    <div class="route-strip" id="routeCard">
+      <div class="route-head">
+        <span><strong id="routeStep"></strong> <span class="route-new" id="routeNew"></span></span>
+        <span class="route-pct" id="routePct"></span>
+      </div>
+      <div class="piano-meter" id="routeMeter" role="img"></div>
+    </div>
     <div class="piano" id="noteAnswers" aria-label="Teclado de piano"></div>
 
-    <div class="route-controls" id="routeControls">
-      <div class="segmented">
-        <button class="chip small" id="routeBack">Paso anterior</button>
-        <button class="chip small" id="routeForward">Paso siguiente</button>
-        <button class="chip small" id="routeChords">Escuchar acordes de Do</button>
-      </div>
-      <label class="toggle-line">
-        <input type="checkbox" id="resolveBox">
-        Al acertar, llevar la nota hasta Do
-      </label>
-    </div>
-
-    <details class="settings" id="freeSettings" open>
-      <summary>Ajustes de notas</summary>
-      <div class="setting-group">
-        <p>Cuántas octavas puede variar la nota</p>
-        <div class="segmented" id="octaveChips"></div>
-      </div>
-      <div class="setting-group">
-        <p>Notas incluidas (mínimo dos)</p>
-        <div class="segmented" id="noteChips"></div>
-        <div class="segmented" style="margin-top:8px">
-          <button class="chip small" id="pickNaturals">Solo naturales</button>
-          <button class="chip small" id="pickAll">Las doce</button>
-        </div>
-      </div>
-      <label class="toggle-line">
-        <input type="checkbox" id="showFirstBox">
-        Mostrar la nota en el pentagrama antes de responder (práctica de lectura)
-      </label>
-      <label class="toggle-line">
-        <input type="checkbox" class="autoNextBox">
-        Pasar sola a la siguiente cuando acierto
-      </label>
-    </details>
   </section>
 
   <!-- APRENDER -->
@@ -329,12 +330,96 @@ section[hidden] { display: none; }
   </section>
 </main>
 
-<nav class="tabs">
-  <div class="inner" role="tablist">
-    <button role="tab" id="tab-intervals" aria-selected="true" aria-controls="panel-intervals">Intervalos</button>
-    <button role="tab" id="tab-notes" aria-selected="false" aria-controls="panel-notes">Notas</button>
-    <button role="tab" id="tab-learn" aria-selected="false" aria-controls="panel-learn">Aprender</button>
-    <button role="tab" id="tab-progress" aria-selected="false" aria-controls="panel-progress">Progreso</button>
+<div class="sheet" id="settingsSheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet-inner">
+    <header class="sheet-head">
+      <h2 id="sheetTitle">Ajustes</h2>
+      <button class="sheet-done" id="sheetDone">Listo</button>
+    </header>
+
+    <div id="intervalSettings">
+      <div class="setting-group">
+        <p>Cómo suenan las notas (activa una o varias)</p>
+        <div class="segmented" id="directionChips"></div>
+      </div>
+      <div class="setting-group">
+        <p>Intervalos incluidos (mínimo dos)</p>
+        <div class="segmented" id="intervalChips"></div>
+        <div class="segmented" style="margin-top:8px">
+          <button class="chip small" id="pickBasic">Solo m3, M3, P4, P5 y P8</button>
+          <button class="chip small" id="pickAllIntervals">Todos</button>
+        </div>
+      </div>
+      <label class="toggle-line">
+        <input type="checkbox" class="autoNextBox">
+        Pasar sola a la siguiente cuando acierto
+      </label>
+    </div>
+
+    <div id="noteSettings">
+      <div id="routeControls">
+        <p class="route-rules" id="routeRules"></p>
+        <div class="setting-group">
+          <p>Cambiar de paso (al cambiar, los puntos del paso empiezan de cero)</p>
+          <div class="segmented">
+            <button class="chip small" id="routeBack">Paso anterior</button>
+            <button class="chip small" id="routeForward">Paso siguiente</button>
+          </div>
+        </div>
+        <label class="toggle-line">
+          <input type="checkbox" id="cleanseBox">
+          Limpiar el oído: tres notas cortas al azar antes de cada nota
+        </label>
+        <label class="toggle-line">
+          <input type="checkbox" id="resolveBox">
+          Al acertar, llevar la nota hasta Do
+        </label>
+      </div>
+
+      <div id="freeSettings">
+        <div class="setting-group">
+          <p>Cuántas octavas puede variar la nota</p>
+          <div class="segmented" id="octaveChips"></div>
+        </div>
+        <div class="setting-group">
+          <p>Notas incluidas (mínimo dos)</p>
+          <div class="segmented" id="noteChips"></div>
+          <div class="segmented" style="margin-top:8px">
+            <button class="chip small" id="pickNaturals">Solo naturales</button>
+            <button class="chip small" id="pickAll">Las doce</button>
+          </div>
+        </div>
+        <label class="toggle-line">
+          <input type="checkbox" id="showFirstBox">
+          Mostrar la nota en el pentagrama antes de responder (práctica de lectura)
+        </label>
+      </div>
+
+      <label class="toggle-line">
+        <input type="checkbox" class="autoNextBox">
+        Pasar sola a la siguiente cuando acierto
+      </label>
+    </div>
+
+    <div id="appearanceSettings">
+      <h3 class="sheet-group-title">Apariencia</h3>
+      <div class="setting-group">
+        <p>Tema de la app</p>
+        <div class="segmented" id="themeChips"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<nav class="drawer" id="drawer" aria-label="Secciones">
+  <div class="drawer-head">Oído musical</div>
+  <div class="drawer-list" role="tablist" aria-orientation="vertical">
+    <button role="tab" id="tab-intervals" aria-selected="true" aria-controls="panel-intervals"><span class="item-title">Intervalos</span><span class="item-sub">Reconoce la distancia entre dos notas</span></button>
+    <button role="tab" id="tab-notes" aria-selected="false" aria-controls="panel-notes"><span class="item-title">Notas</span><span class="item-sub">Práctica libre de notas</span></button>
+    <button role="tab" id="tab-challenge" aria-selected="false" aria-controls="panel-notes"><span class="item-title">Reto</span><span class="item-sub">Ruta guiada nota por nota</span></button>
+    <button role="tab" id="tab-learn" aria-selected="false" aria-controls="panel-learn"><span class="item-title">Aprender</span><span class="item-sub">Canciones para cada intervalo</span></button>
+    <button role="tab" id="tab-progress" aria-selected="false" aria-controls="panel-progress"><span class="item-title">Progreso</span><span class="item-sub">Tus aciertos y rachas</span></button>
   </div>
 </nav>
 
@@ -425,7 +510,10 @@ const state = {
   routeStage: 0,
   routeMaxStage: 0,
   routeScores: {},
-  resolveToDo: true,
+  // Both route extras start off; saved under new names so earlier saved values don't turn them back on
+  resolveSetting: false,
+  earCleanse: false,
+  theme: "auto",
   intervalStats: {},
   noteStats: {},
   streak: 0,
@@ -455,7 +543,9 @@ function loadState() {
     if (OCTAVE_RANGES[saved.octaves]) state.octaves = saved.octaves;
     if (typeof saved.autoNext === "boolean") state.autoNext = saved.autoNext;
     if (typeof saved.showFirst === "boolean") state.showFirst = saved.showFirst;
-    if (typeof saved.resolveToDo === "boolean") state.resolveToDo = saved.resolveToDo;
+    if (typeof saved.resolveSetting === "boolean") state.resolveSetting = saved.resolveSetting;
+    if (typeof saved.earCleanse === "boolean") state.earCleanse = saved.earCleanse;
+    if (["auto", "light", "dark"].includes(saved.theme)) state.theme = saved.theme;
     if (saved.noteMode === "route" || saved.noteMode === "free") state.noteMode = saved.noteMode;
     const clampStage = value => Math.min(Math.max(0, value), LAST_STAGE);
     if (Number.isInteger(saved.routeStage)) state.routeStage = clampStage(saved.routeStage);
@@ -909,7 +999,7 @@ const noteQuiz = {
       this.caption.textContent = "Lee la nota y elige su nombre";
     } else {
       drawStaff(this.staff, null);
-      this.caption.textContent = isRoute()
+      this.caption.textContent = isRoute() && state.earCleanse
         ? "Tres notas cortas al azar y luego la que debes adivinar"
         : "Escucha la nota";
     }
@@ -917,7 +1007,7 @@ const noteQuiz = {
   play(question) { playSingle(question.note.midi); },
   // Route: three random eighth notes to clear the ear, a pause, then the note to guess
   playIntro(question) {
-    if (!isRoute()) return this.play(question);
+    if (!isRoute() || !state.earCleanse) return this.play(question);
     const targetPc = ((question.note.midi % 12) + 12) % 12;
     const eighth = 0.28;
     const notes = [];
@@ -939,7 +1029,7 @@ const noteQuiz = {
   },
   afterSolve(question, isFirstTry) {
     if (!isRoute()) return 900;
-    const resolution = state.resolveToDo
+    const resolution = state.resolveSetting
       ? playResolution(question.note.midi)
       : { labels: [], delay: 900 };
     if (resolution.labels.length) {
@@ -983,16 +1073,6 @@ function playResolution(midi) {
     labels: path.map(n => pitchClassLabel(n % 12)),
     delay: Math.round((step * path.length + 1.1) * 1000) + 400
   };
-}
-
-function playChords() {
-  const chords = [[60, 64, 67], [60, 65, 69], [59, 62, 67], [60, 64, 67]];
-  const notes = [];
-  chords.forEach((chord, index) => {
-    const isLast = index === chords.length - 1;
-    chord.forEach(midi => notes.push({ midi, offset: index * 0.75, duration: isLast ? 1.6 : 0.7, volume: 0.14 }));
-  });
-  playSequence(notes);
 }
 
 // Returns the new stage index when this answer unlocks the next step, otherwise null
@@ -1039,54 +1119,63 @@ function recordRouteResult(pc, isFirstTry) {
 }
 
 function renderRoute() {
-  const modeChips = document.getElementById("noteModeChips");
-  modeChips.innerHTML = "";
-  [{ key: "route", label: "Ruta guiada" }, { key: "free", label: "Libre" }].forEach(mode => {
-    modeChips.appendChild(makeChip(mode.label, state.noteMode === mode.key, () => {
-      if (state.noteMode === mode.key) return;
-      state.noteMode = mode.key;
-      saveState();
-      renderRoute();
-      resetQuiz(noteQuiz);
-    }));
-  });
   document.getElementById("routeCard").hidden = !isRoute();
   document.getElementById("routeControls").hidden = !isRoute();
   document.getElementById("freeSettings").hidden = isRoute();
   if (!isRoute()) return;
 
   const stage = ROUTE_STAGES[state.routeStage];
+  const octavesText = stage.octaves === 1 ? "1 octava" : `${stage.octaves} octavas`;
   document.getElementById("routeStep").textContent = `Paso ${state.routeStage + 1} de ${ROUTE_STAGES.length}`;
   document.getElementById("routeNew").textContent = stage.added !== null
-    ? `Nueva: ${pitchClassLabel(stage.added)}`
-    : stage.octaves > 1 ? `Ahora ${stage.octaves} octavas` : "";
-  document.getElementById("routeNotes").textContent = stage.octaves === 1 ? "En 1 octava" : `En ${stage.octaves} octavas`;
+    ? `· Nueva: ${pitchClassLabel(stage.added)} · ${octavesText}`
+    : `· ${octavesText}`;
 
   const pcs = stage.pcs.slice().sort((a, b) => a - b);
-  const scores = document.getElementById("routeScores");
-  scores.innerHTML = "";
-  pcs.forEach(pc => {
-    const score = routeScore(pc);
-    const pill = document.createElement("div");
-    pill.className = "score-pill" + (score >= NOTE_GOAL ? " done" : "") + (pc === droppedPc ? " dropped" : "");
-    pill.innerHTML = `${pitchClassLabel(pc)} <span class="pts">${score}/${NOTE_GOAL}</span><div class="mini"><div style="width:${score / NOTE_GOAL * 100}%"></div></div>`;
-    scores.appendChild(pill);
-  });
-
   const earned = pcs.reduce((sum, pc) => sum + routeScore(pc), 0);
-  const progress = document.getElementById("routeProgress");
-  const bar = document.getElementById("routeBar");
-  bar.style.width = `${earned / (NOTE_GOAL * pcs.length) * 100}%`;
-  const missing = pcs.filter(pc => routeScore(pc) < NOTE_GOAL).map(pitchClassLabel);
-  if (state.routeStage === LAST_STAGE) {
-    progress.textContent = "Llegaste al final de la ruta. Sigue practicando aquí o vuelve a un paso anterior.";
-  } else {
-    progress.textContent = `Cada nota necesita ${NOTE_GOAL} puntos: acertar a la primera suma 1 y equivocarte resta ${MISTAKE_PENALTY}. `
-      + (missing.length ? `Te falta dominar: ${missing.join(", ")}.` : "");
-  }
+  document.getElementById("routePct").textContent = state.routeStage === LAST_STAGE
+    ? "Final de la ruta"
+    : `${Math.round(earned / (NOTE_GOAL * pcs.length) * 100)}%`;
+
+  // Same geometry as the piano: 7 white columns, black keys centered on the white-key boundaries
+  const meter = document.getElementById("routeMeter");
+  meter.innerHTML = "";
+  const whiteRow = document.createElement("div");
+  whiteRow.className = "meter-row white-row";
+  const blackRow = document.createElement("div");
+  blackRow.className = "meter-row black-row";
+  const makeCell = pc => {
+    const cell = document.createElement("div");
+    cell.className = "meter-cell";
+    if (!pcs.includes(pc)) return cell;
+    const score = routeScore(pc);
+    if (score >= NOTE_GOAL) cell.classList.add("done");
+    if (pc === droppedPc) cell.classList.add("dropped");
+    for (let i = 0; i < NOTE_GOAL; i++) {
+      const pip = document.createElement("span");
+      pip.className = "pip" + (i < score ? " on" : "");
+      cell.appendChild(pip);
+    }
+    return cell;
+  };
+  [0, 2, 4, 5, 7, 9, 11].forEach(pc => whiteRow.appendChild(makeCell(pc)));
+  [{ pc: 1, at: 1 }, { pc: 3, at: 2 }, { pc: 6, at: 4 }, { pc: 8, at: 5 }, { pc: 10, at: 6 }].forEach(({ pc, at }) => {
+    const cell = makeCell(pc);
+    cell.style.left = `calc(${(at / 7) * 100}% - var(--black-width) / 2)`;
+    blackRow.appendChild(cell);
+  });
+  meter.appendChild(blackRow);
+  meter.appendChild(whiteRow);
+  meter.setAttribute("aria-label", "Puntos por nota: "
+    + pcs.map(pc => `${pitchClassLabel(pc)} ${routeScore(pc)} de ${NOTE_GOAL}`).join(", "));
+
+  document.getElementById("routeRules").textContent = state.routeStage === LAST_STAGE
+    ? "Llegaste al final de la ruta. Sigue practicando aquí o vuelve a un paso anterior."
+    : `Cada nota necesita ${NOTE_GOAL} puntos, que ves como rayitas arriba de su tecla. Acertar a la primera suma 1 y equivocarte resta ${MISTAKE_PENALTY}. El paso se completa cuando todas las notas están en verde.`;
   document.getElementById("routeBack").disabled = state.routeStage === 0;
   document.getElementById("routeForward").disabled = state.routeStage >= state.routeMaxStage;
-  document.getElementById("resolveBox").checked = state.resolveToDo;
+  document.getElementById("resolveBox").checked = state.resolveSetting;
+  document.getElementById("cleanseBox").checked = state.earCleanse;
 }
 
 function setRouteStage(stageIndex) {
@@ -1111,10 +1200,15 @@ function resetQuiz(quiz) {
 
 document.getElementById("routeBack").addEventListener("click", () => setRouteStage(state.routeStage - 1));
 document.getElementById("routeForward").addEventListener("click", () => setRouteStage(state.routeStage + 1));
-document.getElementById("routeChords").addEventListener("click", playChords);
 document.getElementById("resolveBox").addEventListener("change", event => {
-  state.resolveToDo = event.target.checked;
+  state.resolveSetting = event.target.checked;
   saveState();
+});
+document.getElementById("cleanseBox").addEventListener("change", event => {
+  state.earCleanse = event.target.checked;
+  saveState();
+  // Keep the caption of a question that hasn't started yet in sync with the setting
+  if (noteQuiz.question && !noteQuiz.question.solved && !state.showFirst) noteQuiz.prepare(noteQuiz.question);
 });
 
 /* ---------- Settings ---------- */
@@ -1306,14 +1400,27 @@ document.getElementById("resetButton").addEventListener("click", () => {
 });
 
 /* ---------- Tabs ---------- */
-const TAB_TITLES = { intervals: "Intervalos", notes: "Notas", learn: "Aprender", progress: "Progreso" };
+const TAB_TITLES = { intervals: "Intervalos", notes: "Notas", challenge: "Reto", learn: "Aprender", progress: "Progreso" };
+// Notas and Reto share one game screen: Notas is free practice, Reto is the guided route
+const TAB_PANELS = { intervals: "intervals", notes: "notes", challenge: "notes", learn: "learn", progress: "progress" };
 Object.keys(TAB_TITLES).forEach(name => {
   document.getElementById(`tab-${name}`).addEventListener("click", () => {
     Object.keys(TAB_TITLES).forEach(other => {
       document.getElementById(`tab-${other}`).setAttribute("aria-selected", String(other === name));
-      document.getElementById(`panel-${other}`).hidden = other !== name;
+      document.getElementById(`panel-${TAB_PANELS[other]}`).hidden = TAB_PANELS[other] !== TAB_PANELS[name];
     });
     document.getElementById("screenTitle").textContent = TAB_TITLES[name];
+    currentTab = name;
+    settingsButton.hidden = !SETTINGS_TITLES[name];
+    if (TAB_PANELS[name] === "notes") {
+      const mode = name === "challenge" ? "route" : "free";
+      if (state.noteMode !== mode) {
+        state.noteMode = mode;
+        saveState();
+        renderRoute();
+        resetQuiz(noteQuiz);
+      }
+    }
     // Leaving a screen cancels its pending "next question" and silences any sound
     clearTimeout(intervalQuiz.timer);
     clearTimeout(noteQuiz.timer);
@@ -1321,8 +1428,62 @@ Object.keys(TAB_TITLES).forEach(name => {
     if (audio) stopAllVoices();
     if (name === "progress") renderProgress();
     window.scrollTo(0, 0);
+    closeDrawer();
   });
 });
+
+/* ---------- Settings screen ---------- */
+// Only the practice screens have settings; everything configurable lives here, not in the game
+const SETTINGS_TITLES = { intervals: "Ajustes de intervalos", notes: "Ajustes de notas", challenge: "Ajustes del reto" };
+const settingsButton = document.getElementById("settingsButton");
+const settingsSheet = document.getElementById("settingsSheet");
+let currentTab = "intervals";
+
+function openSettings() {
+  if (!SETTINGS_TITLES[currentTab]) return;
+  // Don't let a pending "next question" start playing behind the settings
+  clearTimeout(intervalQuiz.timer);
+  clearTimeout(noteQuiz.timer);
+  document.getElementById("sheetTitle").textContent = SETTINGS_TITLES[currentTab];
+  document.getElementById("intervalSettings").hidden = currentTab !== "intervals";
+  document.getElementById("noteSettings").hidden = TAB_PANELS[currentTab] !== "notes";
+  settingsSheet.hidden = false;
+  settingsSheet.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  document.getElementById("sheetDone").focus();
+}
+
+function closeSettings() {
+  settingsSheet.hidden = true;
+  document.body.style.overflow = "";
+  settingsButton.focus();
+}
+
+settingsButton.addEventListener("click", openSettings);
+document.getElementById("sheetDone").addEventListener("click", closeSettings);
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !settingsSheet.hidden) closeSettings();
+  else if (event.key === "Escape" && document.body.classList.contains("drawer-open")) closeDrawer();
+});
+
+/* ---------- Side menu ---------- */
+const menuButton = document.getElementById("menuButton");
+
+function openDrawer() {
+  document.body.classList.add("drawer-open");
+  menuButton.setAttribute("aria-expanded", "true");
+  const selected = document.querySelector('.drawer-list [aria-selected="true"]');
+  if (selected) selected.focus();
+}
+
+function closeDrawer() {
+  if (!document.body.classList.contains("drawer-open")) return;
+  document.body.classList.remove("drawer-open");
+  menuButton.setAttribute("aria-expanded", "false");
+}
+
+menuButton.addEventListener("click", openDrawer);
+document.getElementById("drawerBackdrop").addEventListener("click", closeDrawer);
 
 /* ---------- Fullscreen (Android and desktop; iPhone Safari doesn't allow it for pages) ---------- */
 const ENTER_FULLSCREEN_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
@@ -1360,7 +1521,43 @@ if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
 }
 
 /* ---------- Start ---------- */
+/* ---------- Theme (auto follows the phone; light/dark override it) ---------- */
+const THEMES = [
+  { key: "auto", label: "Automático" },
+  { key: "light", label: "Claro" },
+  { key: "dark", label: "Oscuro" }
+];
+
+function applyTheme() {
+  const root = document.documentElement;
+  if (state.theme === "auto") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", state.theme);
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  const isDark = state.theme === "dark"
+    || (state.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  if (themeColor) themeColor.setAttribute("content", isDark ? "#0F0F0F" : "#EFE9DD");
+}
+
+function renderThemeChips() {
+  const themeChips = document.getElementById("themeChips");
+  themeChips.innerHTML = "";
+  THEMES.forEach(theme => {
+    themeChips.appendChild(makeChip(theme.label, state.theme === theme.key, () => {
+      state.theme = theme.key;
+      saveState();
+      applyTheme();
+      renderThemeChips();
+    }));
+  });
+}
+
+try {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+} catch (error) { /* older browsers: the theme still follows on next load */ }
+
 loadState();
+applyTheme();
+renderThemeChips();
 document.querySelectorAll(".autoNextBox").forEach(box => { box.checked = state.autoNext; });
 renderIntervalSettings();
 renderNoteSettings();
